@@ -3,8 +3,6 @@ package com.example.chatbot.controller;
 import com.example.chatbot.service.GeminiService;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
-
 @RestController
 @RequestMapping("/api/chat")
 public class ChatController {
@@ -29,5 +27,10 @@ public class ChatController {
         // Clear memory inside GeminiService
         geminiService.clearSession(sessionId);
         return "✅ Chat history cleared for session: " + sessionId;
+    }
+
+    @GetMapping("/quota-reset")
+    public String getQuotaReset() {
+        return geminiService.getQuotaResetTime();
     }
 }

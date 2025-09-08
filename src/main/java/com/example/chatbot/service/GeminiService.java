@@ -3,7 +3,11 @@ package com.example.chatbot.service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import java.time.Duration;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 @Service
@@ -58,14 +62,33 @@ public class GeminiService {
                 }
             }
             return "⚠️ No response from Gemini";
+
+        } catch (WebClientResponseException.TooManyRequests e) {
+            return "⚠️ You’ve hit the request limit. Please wait and try again.";
+        } catch (WebClientResponseException e) {
+            return "⚠️ Gemini API error: " + e.getStatusCode();
         } catch (Exception e) {
             e.printStackTrace();
-            return "⚠️ Error: " + e.getMessage();
+            return "⚠️ Unexpected error: " + e.getMessage();
         }
     }
 
-    // 🔹 Add this helper method
+    // 🔹 Helper: Clear session history
     public void clearSession(String sessionId) {
         sessionHistories.remove(sessionId);
+    }
+
+    // 🔹 Helper: Get quota reset countdown
+    public String getQuotaResetTime() {
+        ZoneId pacificZone = ZoneId.of("America/Los_Angeles");
+        ZonedDateTime nowPacific = ZonedDateTime.now(pacificZone);
+        ZonedDateTime midnightPacific = nowPacific.toLocalDate().plusDays(1).atStartOfDay(pacificZone);
+
+        Duration untilReset = Duration.between(nowPacific, midnightPacific);
+
+        long hours = untilReset.toHours();
+        long minutes = untilReset.toMinutesPart();
+
+        return String.format("⏳ Daily quota resets in %d hours %d minutes (midnight PT)", hours, minutes);
     }
 }
