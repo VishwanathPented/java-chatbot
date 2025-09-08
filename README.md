@@ -14,7 +14,7 @@ Supports multiple chat sessions, remembers conversation history, and comes with 
 - 🔑 Uses **Google Gemini API** with API Key  
 - 💬 Real-time chatbot with **session-based memory**  
 - 🌙 Default **dark mode UI** (HTML + CSS)  
-- 📝 View and clear chat history  
+
 - ⚡ Lightweight REST API with Spring Boot  
 
 ---
