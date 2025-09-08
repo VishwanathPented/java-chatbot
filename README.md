@@ -25,3 +25,46 @@ Supports multiple chat sessions, remembers conversation history, and comes with 
 ```bash
 git clone https://github.com/YOUR_USERNAME/java-chatbot.git
 cd java-chatbot
+
+2️⃣ Add Gemini API Key
+
+Set your API key in application.properties:
+gemini.api.key=YOUR_GEMINI_API_KEY
+
+3️⃣ Build & Run
+
+mvn clean install
+mvn spring-boot:run
+
+4️⃣ Open Chat UI
+
+Go to:
+👉 http://localhost:8080/chat.html
+
+⸻
+
+📂 Project Structure
+
+java-chatbot/
+ ├── src/main/java/com/example/chatbot
+ │   ├── App.java               # Main Spring Boot app
+ │   ├── controller/ChatController.java
+ │   └── service/GeminiService.java
+ ├── src/main/resources
+ │   ├── application.properties # Config file
+ │   └── static/chat.html       # Frontend UI
+ ├── pom.xml
+ └── README.md
+
+📌 API Endpoints
+	•	GET /api/chat?msg=hello&sessionId=abc123 → chat with bot
+	•	GET /api/chat/history?sessionId=abc123 → get history
+	•	POST /api/chat/clear?sessionId=abc123 → clear history
+
+⸻
+
+🛠️ Tech Stack
+	•	Backend: Spring Boot (REST, WebFlux)
+	•	Frontend: HTML + CSS (dark mode UI)
+	•	AI Model: Google Gemini 1.5 Flash
+	•	Build Tool: Maven
