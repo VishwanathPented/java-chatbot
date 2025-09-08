@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: chat
+      POSTGRES_PASSWORD: chatpass
+      POSTGRES_DB: chatbotdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chat"]
+      interval: 10s
+      retries: 5
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  init-pgvector:
+    image: postgres:15
+    depends_on:
+      - postgres
+    entrypoint: ["/bin/sh","-c"]
+    command: >
+      until pg_isready -h postgres -U chat; do sleep 1; done;
+      psql -h postgres -U chat -d chatbotdb -c "CREATE EXTENSION IF NOT EXISTS vector;"
+    environment:
+      PGPASSWORD: chatpass
+
+volumes:
+  pgdata:

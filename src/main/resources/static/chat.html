@@ -1,0 +1,524 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vishh - Your AI Assistant</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  <style>
+    body {
+      font-family: "Inter", Arial, sans-serif;
+      background: linear-gradient(135deg, #f8fafc, #eef2f7);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    header {
+      background: #2563eb;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: 600;
+      position: relative;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    #clear-btn {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #ef4444;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background 0.2s;
+    }
+    #clear-btn:hover {
+      background: #dc2626;
+    }
+
+    #chat-box {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .msg {
+      max-width: 75%;
+      padding: 0.75rem 1rem;
+      border-radius: 18px;
+      line-height: 1.5;
+      font-size: 0.95rem;
+      word-wrap: break-word;
+    }
+
+    .user {
+      background: #2563eb;
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+    }
+
+    .bot {
+      background: white;
+      color: #111827;
+      align-self: flex-start;
+      border: 1px solid #e5e7eb;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    #input-area {
+      display: flex;
+      padding: 0.75rem;
+      border-top: 1px solid #e5e7eb;
+      background: white;
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.05);
+    }
+
+    #msg-input {
+      flex: 1;
+      padding: 0.65rem 0.9rem;
+      font-size: 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      outline: none;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+    #msg-input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
+    }
+
+    button.send-btn {
+      margin-left: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: background 0.2s, transform 0.1s;
+    }
+    button.send-btn:hover {
+      background: #1d4ed8;
+    }
+    button.send-btn:active {
+      transform: scale(0.97);
+    }
+
+    pre {
+      background: #f3f4f6;
+      padding: 0.75rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+    }
+
+    code {
+      font-family: monospace;
+    }
+
+    /* 🔥 Typing animation */
+    .typing {
+      display: inline-flex;
+      align-items: center;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+      color: #555;
+      align-self: flex-start;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .dot {
+      height: 8px;
+      width: 8px;
+      margin: 0 3px;
+      background-color: #6b7280;
+      border-radius: 50%;
+      display: inline-block;
+      animation: blink 1.4s infinite both;
+    }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0.3; }
+      40% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    🤖 Vishh - Your AI Assistant
+    <button id="clear-btn" onclick="clearChat()">Clear</button>
+  </header>
+
+  <div id="chat-box"></div>
+
+  <div id="input-area">
+    <input type="text" id="msg-input" placeholder="Type a message..." />
+    <button class="send-btn" onclick="sendMessage()">Send</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.1/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    const chatBox = document.getElementById("chat-box");
+
+    function renderMessages() {
+      chatBox.innerHTML = "";
+      const history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
+      history.forEach(msg => {
+        const div = document.createElement("div");
+        div.className = "msg " + msg.role;
+
+        if (msg.role === "user") {
+          div.textContent = msg.text;
+        } else {
+          div.innerHTML = marked.parse(msg.text);
+          div.querySelectorAll("pre code").forEach(block => hljs.highlightElement(block));
+        }
+
+        chatBox.appendChild(div);
+      });
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById("msg-input");
+      const msg = input.value.trim();
+      if (!msg) return;
+
+      let history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
+      history.push({ role: "user", text: msg });
+      localStorage.setItem("chatHistory", JSON.stringify(history));
+      renderMessages();
+
+      input.value = "";
+
+      // 🔥 Show typing animation
+      const typingDiv = document.createElement("div");
+      typingDiv.className = "typing";
+      typingDiv.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+      chatBox.appendChild(typingDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const res = await fetch(`/api/chat?msg=${encodeURIComponent(msg)}`);
+        const text = await res.text();
+
+        chatBox.removeChild(typingDiv);
+
+        history.push({ role: "bot", text });
+        localStorage.setItem("chatHistory", JSON.stringify(history));
+        renderMessages();
+      } catch (e) {
+        chatBox.removeChild(typingDiv);
+        history.push({ role: "bot", text: "⚠️ Error: " + e.message });
+        localStorage.setItem("chatHistory", JSON.stringify(history));
+        renderMessages();
+      }
+    }
+
+    function clearChat() {
+      localStorage.removeItem("chatHistory");
+      renderMessages();
+    }
+
+    window.onload = renderMessages;
+
+    document.getElementById("msg-input").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") sendMessage();
+    });
+  </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vishh - Your AI Assistant</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <style>
+    body {
+      font-family: "Inter", Arial, sans-serif;
+      background: #0f172a; /* Dark navy */
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      color: #f8fafc;
+    }
+
+    header {
+      background: #1e293b;
+      color: #f1f5f9;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: 600;
+      position: relative;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+      letter-spacing: 0.5px;
+    }
+
+    #clear-btn {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #ef4444;
+      border: none;
+      padding: 0.4rem 0.9rem;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background 0.2s, transform 0.1s;
+    }
+    #clear-btn:hover {
+      background: #dc2626;
+      transform: scale(0.95);
+    }
+
+    #chat-box {
+      flex: 1;
+      padding: 1.2rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      scrollbar-width: thin;
+      scrollbar-color: #334155 #0f172a;
+    }
+    #chat-box::-webkit-scrollbar {
+      width: 6px;
+    }
+    #chat-box::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+
+    .msg {
+      max-width: 75%;
+      padding: 0.8rem 1rem;
+      border-radius: 18px;
+      line-height: 1.5;
+      font-size: 0.95rem;
+      word-wrap: break-word;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .user {
+      background: #2563eb;
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 6px;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+    }
+
+    .bot {
+      background: #1e293b;
+      color: #f8fafc;
+      align-self: flex-start;
+      border: 1px solid #334155;
+      border-bottom-left-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    #input-area {
+      display: flex;
+      padding: 0.9rem;
+      border-top: 1px solid #334155;
+      background: #1e293b;
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.5);
+    }
+
+    #msg-input {
+      flex: 1;
+      padding: 0.7rem 1rem;
+      font-size: 1rem;
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: 10px;
+      outline: none;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+    #msg-input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4);
+    }
+
+    button.send-btn {
+      margin-left: 0.6rem;
+      padding: 0.65rem 1.3rem;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: background 0.2s, transform 0.1s;
+    }
+    button.send-btn:hover {
+      background: #1d4ed8;
+    }
+    button.send-btn:active {
+      transform: scale(0.96);
+    }
+
+    pre {
+      background: #0f172a;
+      padding: 0.75rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      border: 1px solid #334155;
+    }
+
+    code {
+      font-family: "Fira Code", monospace;
+    }
+
+    /* 🔥 Typing animation */
+    .typing {
+      display: inline-flex;
+      align-items: center;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      align-self: flex-start;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+    .dot {
+      height: 7px;
+      width: 7px;
+      margin: 0 3px;
+      background-color: #94a3b8;
+      border-radius: 50%;
+      display: inline-block;
+      animation: blink 1.4s infinite both;
+    }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0.3; }
+      40% { opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    🤖 Vishh - Your AI Assistant
+    <button id="clear-btn" onclick="clearChat()">Clear</button>
+  </header>
+
+  <div id="chat-box"></div>
+
+  <div id="input-area">
+    <input type="text" id="msg-input" placeholder="Type a message..." />
+    <button class="send-btn" onclick="sendMessage()">Send</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.1/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    const chatBox = document.getElementById("chat-box");
+
+    function renderMessages() {
+      chatBox.innerHTML = "";
+      const history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
+      history.forEach(msg => {
+        const div = document.createElement("div");
+        div.className = "msg " + msg.role;
+
+        if (msg.role === "user") {
+          div.textContent = msg.text;
+        } else {
+          div.innerHTML = marked.parse(msg.text);
+          div.querySelectorAll("pre code").forEach(block => hljs.highlightElement(block));
+        }
+
+        chatBox.appendChild(div);
+      });
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById("msg-input");
+      const msg = input.value.trim();
+      if (!msg) return;
+
+      let history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
+      history.push({ role: "user", text: msg });
+      localStorage.setItem("chatHistory", JSON.stringify(history));
+      renderMessages();
+
+      input.value = "";
+
+      // 🔥 Show typing animation
+      const typingDiv = document.createElement("div");
+      typingDiv.className = "typing";
+      typingDiv.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+      chatBox.appendChild(typingDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const res = await fetch(`/api/chat?msg=${encodeURIComponent(msg)}`);
+        const text = await res.text();
+
+        chatBox.removeChild(typingDiv);
+
+        history.push({ role: "bot", text });
+        localStorage.setItem("chatHistory", JSON.stringify(history));
+        renderMessages();
+      } catch (e) {
+        chatBox.removeChild(typingDiv);
+        history.push({ role: "bot", text: "⚠️ Error: " + e.message });
+        localStorage.setItem("chatHistory", JSON.stringify(history));
+        renderMessages();
+      }
+    }
+
+    function clearChat() {
+      localStorage.removeItem("chatHistory");
+      renderMessages();
+    }
+
+    window.onload = renderMessages;
+
+    document.getElementById("msg-input").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") sendMessage();
+    });
+  </script>
+</body>
+</html>
