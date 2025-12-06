@@ -1,30 +1,24 @@
-# =========================
-# 1) Build Stage
-# =========================
-FROM maven:3.9.5-eclipse-temurin-17 AS build
+# ==== Build stage ====
+FROM maven:3.9.9-eclipse-temurin-17 AS build
 WORKDIR /app
 
-# Copy only pom.xml first (for caching dependencies)
+# Copy pom.xml and download dependencies (optional optimization step)
 COPY pom.xml .
-RUN mvn -q dependency:go-offline
+RUN mvn -q -e -B dependency:go-offline
 
-# Now copy the whole source
+# Copy source and build
 COPY src ./src
+RUN mvn clean package -DskipTests
 
-# Build the JAR
-RUN mvn -q clean package -DskipTests
-
-# =========================
-# 2) Run Stage
-# =========================
-FROM eclipse-temurin:17-jre
+# ==== Run stage ====
+FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
-# Copy built JAR from previous stage
+# Copy the built jar from the build stage
 COPY --from=build /app/target/*.jar app.jar
 
-# Render will inject PORT environment variable
+# Expose default app port (Render will still route using $PORT)
 EXPOSE 8080
 
 # Start the Spring Boot app
-CMD ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java","-jar","app.jar"]
