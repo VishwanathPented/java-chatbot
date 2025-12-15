@@ -1,0 +1,70 @@
+# 💬 Gemini Chatbot (Spring Boot + Java)
+
+[![Java](https://img.shields.io/badge/Java-17-orange)](https://www.oracle.com/java/)
+[![Spring Boot](https://img.shields.io/badge/SpringBoot-3.2-green)](https://spring.io/projects/spring-boot)
+[![Maven](https://img.shields.io/badge/Maven-Build-blue)](https://maven.apache.org/)
+[![Google Gemini](https://img.shields.io/badge/AI-Google%20Gemini-purple)](https://ai.google.dev/)
+
+A simple **AI Chatbot** built with **Spring Boot (Java 17)** that integrates with **Google Gemini API**.  
+Supports multiple chat sessions, remembers conversation history, and comes with a clean web-based UI (`chat.html`).
+
+---
+
+## ✨ Features
+- 🔑 Uses **Google Gemini API** with API Key  
+- 💬 Real-time chatbot with **session-based memory**  
+- 🌙 Default **dark mode UI** (HTML + CSS)  
+
+- ⚡ Lightweight REST API with Spring Boot  
+
+---
+
+## 🚀 Getting Started
+
+### 1️⃣ Clone the Repo
+```bash
+git clone https://github.com/YOUR_USERNAME/java-chatbot.git
+cd java-chatbot
+
+2️⃣ Add Gemini API Key
+
+Set your API key in application.properties:
+gemini.api.key=YOUR_GEMINI_API_KEY
+
+3️⃣ Build & Run
+
+mvn clean install
+mvn spring-boot:run
+
+4️⃣ Open Chat UI
+
+Go to:
+👉 http://localhost:8080/chat.html
+
+⸻
+
+📂 Project Structure
+
+java-chatbot/
+ ├── src/main/java/com/example/chatbot
+ │   ├── App.java               # Main Spring Boot app
+ │   ├── controller/ChatController.java
+ │   └── service/GeminiService.java
+ ├── src/main/resources
+ │   ├── application.properties # Config file
+ │   └── static/chat.html       # Frontend UI
+ ├── pom.xml
+ └── README.md
+
+📌 API Endpoints
+	•	GET /api/chat?msg=hello&sessionId=abc123 → chat with bot
+	•	GET /api/chat/history?sessionId=abc123 → get history
+	•	POST /api/chat/clear?sessionId=abc123 → clear history
+
+⸻
+
+🛠️ Tech Stack
+	•	Backend: Spring Boot (REST, WebFlux)
+	•	Frontend: HTML + CSS (dark mode UI)
+	•	AI Model: Google Gemini 1.5 Flash
+	•	Build Tool: Maven
