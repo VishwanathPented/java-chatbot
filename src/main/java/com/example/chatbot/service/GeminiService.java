@@ -9,7 +9,7 @@ import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+
 
 @Service
 public class GeminiService {
@@ -72,7 +72,6 @@ public class GeminiService {
             if (reply != null) {
                 return reply;
             }
-
             return "⚠️ No response from Gemini";
 
         } catch (WebClientResponseException.TooManyRequests e) {

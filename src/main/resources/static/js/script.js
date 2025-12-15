@@ -78,11 +78,18 @@ async function sendMessage() {
     const text = userInput.value.trim();
     if (!text) return;
 
+    // Check if button is disabled (cooldown or processing)
+    if (sendBtn.disabled) return;
+
     // clear input
     userInput.value = "";
 
     // 1. Show User Message
     appendMessage("user", text);
+
+    // Disable button immediately
+    const originalBtnContent = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
+    sendBtn.disabled = true;
 
     // 2. Show Typing Indicator
     const typingId = showTypingIndicator();
@@ -91,20 +98,6 @@ async function sendMessage() {
     try {
         // 3. Prepare Payload (History + Message)
         const history = JSON.parse(localStorage.getItem("chatHistory") || "[]");
-        // We send the history *excluding* the message we just added (if we added it already to LS? No, appendMessage adds it)
-        // Actually, appendMessage DOES add it to LS at line 58.
-        // We should send the history including the new message?
-        // Or send history separate from the current message?
-        // The backend expects: history (context) + message (current).
-        // Let's filter out the very last message from history if it duplicates 'text', OR just send previous history.
-        // EASIEST: Send previous history, and 'message' is the new one.
-
-        // Let's get history BEFORE adding the new one?
-        // Wait, 'appendMessage' is called before this. So 'history' in LS contains the new message.
-        // We should probably just pass the whole history to the backend and let it figure it out?
-        // No, the backend code adds the "current user message" manually: geminiHistory.add(... message ...).
-        // So we should send history EXCLUDING the last message (which is the current one).
-
         const payloadHistory = history.slice(0, -1); // Exclude the just-added user message
 
         const response = await fetch("/api/chat", {
@@ -128,6 +121,22 @@ async function sendMessage() {
         removeTypingIndicator(typingId);
         appendMessage("bot", "⚠️ Network Error: Unable to reach the server.");
         console.error(error);
+    } finally {
+        // Cooldown: Keep button disabled for 60 seconds (1 minute) after sending
+        let cooldownSeconds = 60;
+
+        sendBtn.innerHTML = `<span>${cooldownSeconds}s</span>`;
+
+        const cooldownInterval = setInterval(() => {
+            cooldownSeconds--;
+            if (cooldownSeconds <= 0) {
+                clearInterval(cooldownInterval);
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = originalBtnContent;
+            } else {
+                sendBtn.innerHTML = `<span>${cooldownSeconds}s</span>`;
+            }
+        }, 1000);
     }
 }
 
